@@ -1,0 +1,160 @@
+1) List of available rooms of each type and the room numbers
+
+DECLARE
+    v_room_type VARCHAR2(50);
+    v_room_count NUMBER;
+BEGIN
+    -- Loop through each room type
+    FOR room_rec IN (SELECT DISTINCT type FROM room) LOOP
+        v_room_type := room_rec.type;
+
+        -- Check if there are available rooms of the current type
+        SELECT COUNT(*) INTO v_room_count
+        FROM room
+        WHERE type = v_room_type
+        AND status = 'Available';
+
+        -- Output the result
+        IF v_room_count > 0 THEN
+            DBMS_OUTPUT.PUT_LINE('Available rooms of type ' || v_room_type || ':');
+            -- Fetch and display the room numbers of available rooms
+            FOR room_info IN (SELECT room_number FROM room WHERE type = v_room_type AND status = 'Available') LOOP
+                DBMS_OUTPUT.PUT_LINE('Room number: ' || room_info.room_number);
+            END LOOP;
+        ELSE
+            DBMS_OUTPUT.PUT_LINE('No available rooms of type ' || v_room_type || ' or all rooms of this type are already occupied.');
+        END IF;
+    END LOOP;
+END;
+/
+
+
+
+2) Change the room prices based on the type of room which was booked most often
+
+DECLARE
+    v_high_demand_room_type VARCHAR2(30);
+    v_new_price NUMBER(10, 2);
+BEGIN
+    -- Identify the room type with the highest demand
+    SELECT room_type INTO v_high_demand_room_type
+    FROM (
+        SELECT c.room_type, COUNT(*) AS checkin_count
+        FROM check_in c
+        GROUP BY c.room_type
+        ORDER BY COUNT(*) DESC
+    )
+    WHERE ROWNUM = 1;
+
+    -- Increase the price for the most booked room type by 10%
+    SELECT rate * 1.1 INTO v_new_price
+    FROM room_type
+    WHERE type = v_high_demand_room_type;
+
+    -- Update the price for the most booked room type in the room_type table
+    UPDATE room_type
+    SET rate = v_new_price
+    WHERE type = v_high_demand_room_type;
+
+    -- Output confirmation message
+    DBMS_OUTPUT.PUT_LINE('Price for room type ' || v_high_demand_room_type || ' updated to ' || v_new_price);
+COMMIT;
+END;
+/
+
+
+
+3) Calulating the room bill at the end of stay
+
+CREATE OR REPLACE PROCEDURE calculate_and_add_bill IS
+BEGIN
+  FOR checkin_rec IN (SELECT * FROM check_in) LOOP
+    DECLARE
+      v_duration NUMBER;
+      v_total_price NUMBER;
+    BEGIN
+      v_duration := checkin_rec.check_out_date - checkin_rec.check_in_date;
+      
+      SELECT rate * v_duration INTO v_total_price
+      FROM room_type
+      WHERE type = checkin_rec.room_type;
+      
+      INSERT INTO room_payable (guest_id, room_number, type, duration, total_price)
+      VALUES (checkin_rec.guest_id, checkin_rec.room_number, checkin_rec.room_type, v_duration, v_total_price);
+    EXCEPTION
+      WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error calculating and adding bill for guest ' || checkin_rec.guest_id || ': ' || SQLERRM);
+    END;
+  END LOOP;
+  
+  COMMIT;
+  DBMS_OUTPUT.PUT_LINE('Final bills calculated and added to room_payable table successfully.');
+END calculate_and_add_bill;
+/
+
+CREATE OR REPLACE TRIGGER calculate_bill_on_insert
+AFTER INSERT ON check_in
+FOR EACH ROW
+BEGIN
+  calculate_and_add_bill;
+END;
+/
+
+CREATE OR REPLACE TRIGGER calculate_bill_on_update
+AFTER UPDATE OF check_out_date ON check_in
+FOR EACH ROW
+BEGIN
+  calculate_and_add_bill;
+END;
+/
+
+
+
+4) Make room available after check-out date has occured
+
+BEGIN
+  DBMS_SCHEDULER.DROP_JOB(
+    job_name     => 'UPDATE_ROOM_STATUS_JOB',
+    force        => FALSE
+  );
+END;
+/
+
+
+-- Step 1: Create a PL/SQL Procedure
+CREATE OR REPLACE PROCEDURE update_room_status AS
+BEGIN
+  UPDATE room r
+  SET status = 'available'
+  WHERE r.room_number IN (
+    SELECT c.room_number
+    FROM check_in c
+    WHERE c.check_out_date <= SYSDATE
+  );
+  COMMIT;
+  DBMS_OUTPUT.PUT_LINE('Room status updated successfully.');
+EXCEPTION
+  WHEN OTHERS THEN
+    DBMS_OUTPUT.PUT_LINE('Error updating room status: ' || SQLERRM);
+END update_room_status;
+/
+
+-- Step 2: Create a Scheduled Job
+BEGIN
+  DBMS_SCHEDULER.CREATE_JOB(
+    job_name => 'UPDATE_ROOM_STATUS_JOB',
+    job_type => 'PLSQL_BLOCK',
+    job_action => 'BEGIN update_room_status; END;',
+    start_date => SYSTIMESTAMP,
+    repeat_interval => 'FREQ=DAILY;BYHOUR=0',
+    enabled => TRUE
+  );
+  DBMS_OUTPUT.PUT_LINE('Scheduled job created successfully.');
+EXCEPTION
+  WHEN OTHERS THEN
+    DBMS_OUTPUT.PUT_LINE('Error creating scheduled job: ' || SQLERRM);
+END;
+/
+
+
+

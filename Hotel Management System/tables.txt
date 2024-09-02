@@ -1,0 +1,72 @@
+DROP TABLE room_payable;
+DROP TABLE inventory;
+DROP TABLE employee;
+DROP TABLE department;
+DROP TABLE check_in;
+DROP TABLE room;
+DROP TABLE room_type;
+
+
+
+CREATE TABLE room_type (
+    type VARCHAR(30) PRIMARY KEY,
+    rate NUMBER(10)
+);
+
+CREATE TABLE room (
+    room_number NUMERIC(10) PRIMARY KEY,
+    status VARCHAR(30),
+    type VARCHAR(30),
+    FOREIGN KEY (type) REFERENCES room_type(type)
+);
+
+CREATE TABLE check_in (
+    guest_id NUMBER(10) UNIQUE NOT NULL,
+    name VARCHAR(20),
+    contact NUMBER(10),
+    check_in_date DATE,
+    check_out_date DATE,
+    room_number NUMBER(4) PRIMARY KEY,
+    room_type VARCHAR(50),    
+    FOREIGN KEY (room_number) REFERENCES room(room_number)
+);
+
+CREATE TABLE department (
+    dept_id VARCHAR(10) PRIMARY KEY,
+    name VARCHAR(20)
+);
+
+CREATE TABLE employee (
+    emp_id NUMBER(20) PRIMARY KEY,
+    dept_id VARCHAR(20),
+    name VARCHAR(20),
+    designation VARCHAR(30),
+    salary NUMBER(10),
+    email VARCHAR(50),
+    contact NUMBER(11),
+    FOREIGN KEY (dept_id) REFERENCES department(dept_id)
+);
+
+CREATE TABLE inventory (
+    dept_id VARCHAR(20),
+    inventory_id NUMBER(10) PRIMARY KEY,
+    room_number NUMBER(10),
+    name VARCHAR(20),
+    quantity NUMBER(10),
+    price NUMBER(10),
+    FOREIGN KEY (room_number) REFERENCES room(room_number),
+    FOREIGN KEY (dept_id) REFERENCES department(dept_id)
+);
+
+CREATE TABLE room_payable (
+    guest_id NUMBER(10) PRIMARY KEY,
+    room_number NUMBER(10),
+    type VARCHAR(30),
+    duration NUMBER(2),
+    total_price NUMBER(6),
+    FOREIGN KEY (room_number) REFERENCES room(room_number),
+    FOREIGN KEY (type) REFERENCES room_type(type)
+);
+
+
+

@@ -1,0 +1,60 @@
+-- Insert values into room_type table
+INSERT INTO room_type VALUES('Standard', 1500);
+INSERT INTO room_type VALUES('Suite', 3500);
+INSERT INTO room_type VALUES('Penthouse', 7500);
+
+-- Insert values into room table
+INSERT INTO room VALUES(301, 'Available', 'Suite');
+INSERT INTO room VALUES(102, 'Available', 'Standard');
+INSERT INTO room VALUES(101, 'Occupied', 'Standard');
+INSERT INTO room VALUES(501, 'Available', 'Penthouse');
+INSERT INTO room VALUES(103, 'Available', 'Standard');
+INSERT INTO room VALUES(302, 'Occupied', 'Suite');
+INSERT INTO room VALUES(201, 'Available', 'Standard');
+INSERT INTO room VALUES(303, 'Occupied', 'Suite');
+INSERT INTO room VALUES(502, 'Available', 'Penthouse');
+INSERT INTO room VALUES(202, 'Available', 'Standard');
+INSERT INTO room VALUES(104, 'Occupied', 'Standard');
+INSERT INTO room VALUES(106, 'Available', 'Standard');
+INSERT INTO room VALUES(401, 'Occupied', 'Suite');
+INSERT INTO room VALUES(204, 'Available', 'Standard');
+
+-- Insert values into check_in table
+INSERT INTO check_in VALUES(1001, 'John Doe', 1234567890, TO_DATE('2024-04-15', 'YYYY-MM-DD'), TO_DATE('2024-04-20', 'YYYY-MM-DD'), 101, 'Standard');
+INSERT INTO check_in VALUES(1002, 'Jane Smith', 9876543210, TO_DATE('2024-04-16', 'YYYY-MM-DD'), TO_DATE('2024-04-19', 'YYYY-MM-DD'), 201, 'Standard');
+INSERT INTO check_in VALUES(1003, 'Michael Johnson', 6549873210, TO_DATE('2024-04-17', 'YYYY-MM-DD'), TO_DATE('2024-04-22', 'YYYY-MM-DD'), 301, 'Suite');
+INSERT INTO check_in VALUES(1004, 'Emily Brown', 7891234560, TO_DATE('2024-04-18', 'YYYY-MM-DD'), TO_DATE('2024-04-23', 'YYYY-MM-DD'), 401, 'Suite');
+
+-- Insert values into department table
+INSERT INTO department VALUES(1, 'Front Desk');
+INSERT INTO department VALUES(2, 'Housekeeping');
+INSERT INTO department VALUES(3, 'Maintenance');
+INSERT INTO department VALUES(4, 'Food and Beverage');
+INSERT INTO department VALUES(5, 'Security');
+
+-- Insert values into employee table
+INSERT INTO employee VALUES(2001, 1, 'Alice Johnson', 'Receptionist', 35000, 'alice@example.com', 1234567890);
+INSERT INTO employee VALUES(2002, 1, 'Bob Smith', 'Concierge', 27000, 'bob@example.com', 9876543210);
+INSERT INTO employee VALUES(2003, 2, 'Emily Clark', 'Housekeeper', 12000, 'emily@example.com', 6549873210);
+INSERT INTO employee VALUES(2004, 3, 'Jack Wilson', 'Technician', 18000, 'jack@example.com', 7891234560);
+INSERT INTO employee VALUES(2005, 4, 'Sarah Lee', 'Chef', 58000, 'sarah@example.com', 987654321);
+INSERT INTO employee VALUES(2006, 4, 'David Brown', 'Waiter', 15000, 'david@example.com', 876543219);
+INSERT INTO employee VALUES(2007, 5, 'Michael Johnson', 'Security Guard', 20000, 'michael@example.com', 765432198);
+INSERT INTO employee VALUES(2008, 4, 'Linda Garcia', 'Waitress', 17000, 'linda@example.com', 6543219870);
+INSERT INTO employee VALUES(2009, 4, 'Michael Smith', 'Waiter', 17000, 'michael@example.com', 7890123456);
+
+
+-- Insert values into inventory table
+INSERT INTO inventory VALUES(4, 3005, 501, 'Food Items', 30, 50.00);
+INSERT INTO inventory VALUES(3, 3006, 502, 'Beverages', 50, 30.00);
+INSERT INTO inventory VALUES(5, 3007, NULL, 'Security Equipment', 10, 100.00);
+
+
+
+SELECT * FROM room_payable;
+SELECT * FROM inventory;
+SELECT * FROM employee;
+SELECT * FROM department;
+SELECT * FROM check_in;
+SELECT * FROM room_type;
+SELECT * FROM room;
